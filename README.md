@@ -15,13 +15,14 @@ It is engineered for **ultra-low latency** and serves as the gateway for real-ti
 
 ## 📂 Project Structure
 
-Leviathan-Wake-Cockpit/
-├── cmd/            # Main entrypoint for the service
-├── internal/       # Core business logic
-├── pkg/            # Shared libraries and reusable modules
-├── configs/        # Configuration files
-├── scripts/        # DevOps and helper scripts
-└── README.md       # Project documentation
+Leviathan-Wake-Cockpit
+
+- ├── cmd/            # Main entrypoint for the service
+- ├── internal/       # Core business logic
+- ├── pkg/            # Shared libraries and reusable modules
+- ├── configs/        # Configuration files
+- ├── scripts/        # DevOps and helper scripts
+- └── README.md       # Project documentation
 
 ---
 
