@@ -8,7 +8,6 @@ import (
 
 	"leviathan-wake-cockpit/internal/config"
 	keydb_database "leviathan-wake-cockpit/internal/database"
-	service "leviathan-wake-cockpit/internal/services"
 )
 
 func main() {
@@ -24,12 +23,7 @@ func main() {
 	}
 	log.Println("Successfully connected to KeyDB.")
 
-	updaterService := service.NewWhaleUpdaterService(cfg, dbClient)
-	streamService := service.NewStreamProcessorService(cfg, dbClient)
-	log.Println("Internal services initialized.")
-
-	go updaterService.Start()
-	go streamService.Start()
+	log.Println(dbClient)
 
 	log.Println("Leviathan-Wake-Cockpit is now running. Press Ctrl+C to exit.")
 
