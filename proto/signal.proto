@@ -1,0 +1,21 @@
+syntax = "proto3";
+
+package proto;
+
+option go_package = "leviathan/proto";
+
+message WhaleSignal {
+  int64 timestamp = 1;
+  string asset = 2;
+  string direction = 3;
+  double size_usd = 4;
+  double price = 5;
+}
+
+message Ack {
+  bool success = 1;
+}
+
+service TradeSignal {
+  rpc SendSignal(WhaleSignal) returns (Ack) {}
+}
