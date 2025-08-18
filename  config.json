@@ -1,0 +1,5 @@
+{
+  "keydb_address": "localhost:6379",
+  "binance_websocket_url": "wss://stream.binance.com:9443/ws/btcusdt@trade",
+  "update_interval_hours": 6
+}
