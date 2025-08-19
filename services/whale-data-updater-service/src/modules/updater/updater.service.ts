@@ -14,7 +14,7 @@ export class UpdaterService {
     private readonly httpService: HttpService,
   ) {}
 
-  @Cron(CronExpression.EVERY_6_HOURS)
+  @Cron(CronExpression.EVERY_10_MINUTES)
   async handleUpdate() {
     this.logger.log('Scheduled whale data update process started...');
 
