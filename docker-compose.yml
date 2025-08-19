@@ -2,20 +2,22 @@
 services:
   keydb:
     image: eqalpha/keydb
+    container_name: keydb
     ports:
-      - "6379:6379"
+      - "6380:6379"
     volumes:
       - keydb_data:/data
+    restart: always
 
-  whale-data-updater-service:
-    build: ./services/whale-data-updater-service
-    # depends_on:
-    #   - keydb
+  # whale-data-updater-service:
+  #   build: ./services/whale-data-updater-service
+  #   # depends_on:
+  #   #   - keydb
 
-  stream-processor-service:
-    build: ./services/stream-processor-service
-    # depends_on:
-    #   - keydb
+  # stream-processor-service:
+  #   build: ./services/stream-processor-service
+  #   # depends_on:
+  #   #   - keydb
 
 volumes:
   keydb_data:
