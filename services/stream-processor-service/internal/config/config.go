@@ -6,9 +6,9 @@ import (
 )
 
 type Config struct {
-	KeyDBAddress        string `json:"keydb_address"`
-	BinanceWebsocketURL string `json:"binance_websocket_url"`
-	UpdateIntervalHours int    `json:"update_interval_hours"`
+	KeydbAddress           string `json:"keydb_address"`
+	ArbitrumWsUrl          string `json:"arbitrum_ws_url"`
+	ExecutionServerAddress int    `json:"execution_server_address"`
 }
 
 func Load(path string) (*Config, error) {
