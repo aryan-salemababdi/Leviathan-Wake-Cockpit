@@ -41,34 +41,52 @@ func (s *ProcessorService) Start(ctx context.Context) {
 		log.Printf("WARN: Could not load initial whitelist: %v. Will retry...", err)
 	}
 
-	s.connectAndListen(ctx)
+	s.connectAndListen()
 }
 
 func (s *ProcessorService) loadWhitelistFromKeyDB(ctx context.Context) error {
 	jsonData, err := s.keydbClient.Get(ctx, WhitelistKey).Result()
-
-	if err != nil {
+	if err == redis.Nil {
+		log.Println("No whitelist found in KeyDB, starting with empty list.")
+		return nil
+	} else if err != nil {
 		return err
 	}
 
-	var entries []WhitelistEntry
-
-	if err := json.Unmarshal([]byte(jsonData), &entries); err != nil {
-		return err
+	var inner string
+	if err := json.Unmarshal([]byte(jsonData), &inner); err == nil {
+		jsonData = inner
 	}
 
 	newWhitelist := make(map[string]bool)
-	for _, entry := range entries {
-		if entry.Blockchain == "Arbitrum" {
-			newWhitelist[entry.Address] = true
+
+	var entries []WhitelistEntry
+	if err := json.Unmarshal([]byte(jsonData), &entries); err == nil && len(entries) > 0 {
+		for _, entry := range entries {
+			if entry.Blockchain == "Arbitrum" {
+				newWhitelist[entry.Address] = true
+			}
 		}
+		s.whitelist = newWhitelist
+		log.Printf("Whitelist loaded into memory with %d Arbitrum addresses.", len(s.whitelist))
+		return nil
 	}
-	s.whitelist = newWhitelist
-	log.Printf("Whitelist loaded into memory with %d Arbitrum addresses.", len(s.whitelist))
+
+	var addresses []string
+	if err := json.Unmarshal([]byte(jsonData), &addresses); err == nil && len(addresses) > 0 {
+		for _, addr := range addresses {
+			newWhitelist[addr] = true
+		}
+		s.whitelist = newWhitelist
+		log.Printf("Whitelist loaded into memory with %d addresses.", len(s.whitelist))
+		return nil
+	}
+
+	log.Printf("WARN: Whitelist data in KeyDB has unexpected format: %s", jsonData)
 	return nil
 }
 
-func (s *ProcessorService) connectAndListen(ctx context.Context) {
+func (s *ProcessorService) connectAndListen() {
 	conn, _, err := websocket.DefaultDialer.Dial(s.cfg.ArbitrumWsUrl, nil)
 	if err != nil {
 		log.Fatalf("FATAL: Could not connect to Arbitrum WebSocket: %v", err)
