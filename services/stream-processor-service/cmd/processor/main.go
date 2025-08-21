@@ -7,10 +7,11 @@ import (
 	"os"
 	"os/signal"
 	"syscall"
+	"time"
 
-	"stream-processor-service/internal/config"
-	// "leviathan/stream-processor/internal/database"
-	// "leviathan/stream-processor/internal/service"
+	"leviathan-wake-cockpit/internal/config"
+	keydb_database "leviathan-wake-cockpit/internal/database"
+	processorService "leviathan-wake-cockpit/internal/services"
 )
 
 func main() {
@@ -20,16 +21,19 @@ func main() {
 	if err != nil {
 		log.Fatalf("FATAL: Could not load configuration: %v", err)
 	}
-	log.Printf("Loaded config: %+v", cfg)
-	log.Println("KeyDB connection placeholder is ready.")
-	log.Println("gRPC client placeholder is ready.")
 
-	// processorSvc := service.NewProcessorService(cfg, dbClient, execClient)
+	dbClient, err := keydb_database.NewKeyDBClient(cfg.KeydbAddress)
+	if err != nil {
+		log.Fatalf("FATAL: Could not connect to KeyDB: %v", err)
+	}
+	log.Println("Successfully connected to KeyDB.")
+
+	processorSvc := processorService.NewProcessorService(cfg, dbClient)
 	log.Println("ProcessorService is assembled.")
 
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
-	// go processorSvc.Start(ctx)
+	go processorSvc.Start(ctx)
 
 	log.Println("StreamProcessorService is now RUNNING. Press Ctrl+C to exit.")
 
@@ -39,6 +43,6 @@ func main() {
 
 	log.Println("Shutting down StreamProcessorService...")
 	cancel()
-	// time.Sleep(2 * time.Second)
+	time.Sleep(2 * time.Second)
 	log.Println("Service gracefully stopped.")
 }
