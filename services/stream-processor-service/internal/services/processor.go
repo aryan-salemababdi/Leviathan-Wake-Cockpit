@@ -69,7 +69,6 @@ func (s *ProcessorService) loadWhitelistFromKeyDB(ctx context.Context) error {
 }
 
 func (s *ProcessorService) connectAndListen(ctx context.Context) {
-	// اتصال به وب‌سوکت Alchemy
 	conn, _, err := websocket.DefaultDialer.Dial(s.cfg.ArbitrumWsUrl, nil)
 	if err != nil {
 		log.Fatalf("FATAL: Could not connect to Arbitrum WebSocket: %v", err)
@@ -77,41 +76,23 @@ func (s *ProcessorService) connectAndListen(ctx context.Context) {
 	defer conn.Close()
 	log.Println("Successfully connected to Arbitrum WebSocket.")
 
-	// ارسال پیام Subscribe برای دریافت تراکنش‌های جدید
 	subscribeMsg := `{"jsonrpc":"2.0","id":1,"method":"eth_subscribe","params":["alchemy_newPendingTransactions"]}`
 	if err := conn.WriteMessage(websocket.TextMessage, []byte(subscribeMsg)); err != nil {
 		log.Fatalf("FATAL: Could not subscribe to new transactions: %v", err)
 	}
 	log.Println("Subscribed to new pending transactions.")
 
-	// حلقه اصلی برای خواندن پیام‌ها
 	for {
 		_, message, err := conn.ReadMessage()
 		if err != nil {
 			log.Printf("ERROR: Error reading from WebSocket: %v. Reconnecting...", err)
-			// TODO: پیاده‌سازی منطق اتصال مجدد
 			return
 		}
 
-		// پردازش هر پیام در یک Goroutine جداگانه تا حلقه اصلی مسدود نشود
 		go s.processTransactionMessage(message)
 	}
 }
 
-// processTransactionMessage پیام را پردازش و فیلتر می‌کند
 func (s *ProcessorService) processTransactionMessage(msg []byte) {
-	// TODO: در اینجا باید ساختار دقیق پیام JSON از Alchemy را پیدا کرده و آن را Unmarshal کنیم
-	// ساختار پیام معمولاً شامل from, to, value, data و ... است.
-	// var tx Transaction
-	// json.Unmarshal(msg, &tx)
-
-	// فرآیند فیلترینگ (در اینجا به صورت مفهومی)
-	// if s.whitelist[tx.From] || s.whitelist[tx.To] {
-	//	 log.Printf("!!! WHALE TRANSACTION DETECTED: From %s To %s", tx.From, tx.To)
-
-	//   TODO:
-	//   ۱. رمزگشایی داده‌های تراکنش (tx.Data) برای فهمیدن نوع معامله (مثلاً Swap در Uniswap)
-	//   ۲. ساخت پیام WhaleSignal با استاندارد Protobuf
-	//   ۳. ارسال پیام از طریق کلاینت gRPC به سرور اجرا و ریسک
-	// }
+	// TODO
 }
