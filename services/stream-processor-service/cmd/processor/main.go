@@ -4,7 +4,7 @@ import (
 	"context"
 	"leviathan-wake-cockpit/internal/config"
 	keydb_database "leviathan-wake-cockpit/internal/database"
-	processorService "leviathan-wake-cockpit/internal/services"
+	"leviathan-wake-cockpit/internal/services/processor"
 	"log"
 	"os"
 	"os/signal"
@@ -33,7 +33,7 @@ func main() {
 	}
 	log.Println("Successfully connected to KeyDB.")
 
-	processorSvc := processorService.NewProcessorService(cfg, dbClient)
+	processorSvc := processor.NewProcessorService(cfg, dbClient)
 	log.Println("ProcessorService is assembled.")
 
 	ctx, cancel := context.WithCancel(context.Background())
