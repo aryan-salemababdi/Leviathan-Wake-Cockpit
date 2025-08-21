@@ -1,20 +1,28 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { Cron, CronExpression } from '@nestjs/schedule';
 import { KeydbService } from '../keydb/keydb.service';
-import { HttpService } from '@nestjs/axios';
+// import { HttpService } from '@nestjs/axios';
+import * as fs from 'fs';
+import * as path from 'path';
+import { TopTraders } from 'src/common/types/topTraders.type';
 
 const WHITELIST_KEY = 'whale_whitelist';
 
 @Injectable()
 export class UpdaterService {
   private readonly logger = new Logger(UpdaterService.name);
+  private wallets: any;
 
   constructor(
     private readonly keyDBService: KeydbService,
-    private readonly httpService: HttpService,
-  ) {}
+    // private readonly httpService: HttpService,
+  ) {
+    const filePath = path.join(process.cwd(), 'db.json');
+    const raw = fs.readFileSync(filePath, 'utf-8');
+    this.wallets = JSON.parse(raw);
+  }
 
-  @Cron(CronExpression.EVERY_10_MINUTES)
+  @Cron(CronExpression.EVERY_6_HOURS)
   async handleUpdate() {
     this.logger.log('Scheduled whale data update process started...');
 
@@ -24,11 +32,23 @@ export class UpdaterService {
         `Successfully fetched data ${topTraders.length} top traders`,
       );
 
-      const whiteList = topTraders.map((trader) => trader.address);
-      if (whiteList.length === 0) {
+      if (topTraders.length === 0) {
         this.logger.log('No addresses found, skipping update.');
         return;
       }
+
+      const whiteList = topTraders
+        .filter(
+          (trader) =>
+            trader.account_value > 5_000_000 &&
+            trader.perp_alltime_pnl > 0 &&
+            trader.perp_month_pnl > 0 &&
+            trader.perp_week_pnl > 0 &&
+            trader.perp_day_pnl > 0 &&
+            trader.main_position.value / trader.account_value >= 0.5 &&
+            (trader.direction_bias >= 70 || trader.direction_bias <= 30),
+        )
+        .map((trader) => trader.address);
 
       await this.saveWhiteListToKeyDB(whiteList);
       this.logger.log(
@@ -39,24 +59,22 @@ export class UpdaterService {
     }
   }
 
-  private async fetchTopTraders(): Promise<{ address: string; pnl: number }[]> {
+  private async fetchTopTraders(): Promise<TopTraders[]> {
     this.logger.log('Fetching data from external analytics source...');
-    // const url = 'https://hyperdash.info/api/top-traders';
-    // const response = await firstValueFrom(this.httpService.get(url));
-    // return response.data;
 
     // Simulator Data
-    const mockData = [
-      { address: '0x73BCEb1Cd57C711feCac222608109E6A6634550A', pnl: 5200000 },
-      { address: '0x4862733B5FdDFd35f35ea8CCfB05490c56D4f302', pnl: 4100000 },
-      { address: '0x4a1D225d32c4B173628d1D472c2191924B279282', pnl: 3850000 },
-    ];
+    const mockData = this.wallets;
 
     return Promise.resolve(mockData);
   }
 
-  private async saveWhiteListToKeyDB(address: string[]): Promise<void> {
-    const jsonData = JSON.stringify(address);
+  private async saveWhiteListToKeyDB(addresses: string[]): Promise<void> {
+    if (addresses.length === 0) {
+      this.logger.log('Whitelist is empty, skipping KeyDB update.');
+      return;
+    }
+
+    const jsonData = JSON.stringify(addresses);
     await this.keyDBService.client.set(WHITELIST_KEY, jsonData);
   }
 }
