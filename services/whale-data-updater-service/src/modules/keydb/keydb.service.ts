@@ -1,7 +1,7 @@
 import { Injectable, OnModuleInit, Logger, Inject } from '@nestjs/common';
 import { ConfigType } from '@nestjs/config';
 import Redis from 'ioredis';
-import keydbConfig from 'src/config/keydb/keydb.config';
+import keydbConfig from '../../config/keydb/keydb.config';
 
 @Injectable()
 export class KeydbService implements OnModuleInit {
