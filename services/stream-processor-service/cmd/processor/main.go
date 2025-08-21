@@ -1,25 +1,30 @@
-// cmd/processor/main.go
 package main
 
 import (
 	"context"
+	"leviathan-wake-cockpit/internal/config"
+	keydb_database "leviathan-wake-cockpit/internal/database"
+	processorService "leviathan-wake-cockpit/internal/services"
 	"log"
 	"os"
 	"os/signal"
 	"syscall"
 	"time"
 
-	"leviathan-wake-cockpit/internal/config"
-	keydb_database "leviathan-wake-cockpit/internal/database"
-	processorService "leviathan-wake-cockpit/internal/services"
+	"github.com/joho/godotenv"
 )
 
 func main() {
+
+	err := godotenv.Load()
+	if err != nil {
+		log.Println("No .env file found, using enviroment variables.")
+	}
 	log.Println("Initializing StreamProcessorService...")
 
-	cfg, err := config.Load("config.json")
-	if err != nil {
-		log.Fatalf("FATAL: Could not load configuration: %v", err)
+	cfg := config.Load()
+	if cfg == nil {
+		log.Fatalf("FATAL: Could not load configuration")
 	}
 
 	dbClient, err := keydb_database.NewKeyDBClient(cfg.KeydbAddress)
