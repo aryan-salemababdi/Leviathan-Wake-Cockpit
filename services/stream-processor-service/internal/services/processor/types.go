@@ -21,7 +21,22 @@ type JSONRPCRequest struct {
 
 type TransactionDetailsResponse struct {
 	Result *struct {
-		From string `json:"from"`
-		To   string `json:"to"`
+		Hash  string `json:"hash"`
+		From  string `json:"from"`
+		To    string `json:"to"`
+		Value string `json:"value"`
+		Input string `json:"input"`
+	} `json:"result"`
+}
+
+type TransactionReceiptResponse struct {
+	Result *struct {
+		TransactionHash string `json:"transactionHash"`
+		Status          string `json:"status"`
+		Logs            []struct {
+			Address string   `json:"address"`
+			Topics  []string `json:"topics"`
+			Data    string   `json:"data"`
+		} `json:"logs"`
 	} `json:"result"`
 }
