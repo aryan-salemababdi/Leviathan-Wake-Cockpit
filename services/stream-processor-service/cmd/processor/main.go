@@ -36,6 +36,16 @@ func main() {
 	processorSvc := processor.NewProcessorService(cfg, dbClient)
 	log.Println("ProcessorService is assembled.")
 
+	go func() {
+		testHash := "0xbc6372b25dcbfe7294ad79a639405e357c46b8cc485120892a3020eb972a6ecf"
+		details, err := processorSvc.FetchTransactionDetails(testHash)
+		if err != nil {
+			log.Printf("TEST ERROR: %v", err)
+			return
+		}
+		log.Printf("TEST Transaction Details: %+v", details.Result)
+	}()
+
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 	go processorSvc.Start(ctx)
